@@ -1,6 +1,8 @@
 package gis.hmap;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
@@ -98,6 +100,21 @@ class Common {
         return _instance.extParam;
     }
 
+    /**
+     * 获取版本号
+     * @return 当前应用的版本号
+     */
+    public static String getVersion(Context context) {
+        try {
+            PackageManager manager = context.getPackageManager();
+            PackageInfo info = manager.getPackageInfo(context.getPackageName(), 0);
+            return info.versionName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
     public static Logger getLogger(Context context) {
         if (_instance == null)
             _instance = new Common();
@@ -106,13 +123,14 @@ class Common {
             _instance.logger = Logger.getLogger("GisView");
             _instance.logger.setLevel(Level.ALL);
             try {
-                File path = new File(Environment.getExternalStorageDirectory(), context.getPackageName() + "/gis_logs");
+                File path = new File(Environment.getExternalStorageDirectory(), "gisview_logs"+getVersion(context));
+                Log.e("path", path.getAbsolutePath());
                 if (!path.exists())
                     path.mkdir();
-                File lockfile = new File(path, "common.lck");
+                File lockfile = new File(path, getVersion(context)+"common.lck");
                 if (lockfile.exists())
                     lockfile.delete();
-                File file = new File(path, "common.log");
+                File file = new File(path, getVersion(context)+"common.log");
                 if (file.exists())
                     file.delete();
                 FileHandler fileHandler = new FileHandler(file.getAbsolutePath());

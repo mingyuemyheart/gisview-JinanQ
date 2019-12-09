@@ -18,6 +18,8 @@ import com.supermap.services.components.commontypes.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -25,6 +27,8 @@ import java.util.List;
  */
 
  class QueryUtils {
+
+     private static ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     public static class BuildingResult {
         public Feature feature;
@@ -89,7 +93,8 @@ import java.util.List;
     }
 
     public static void queryIndoorMap(String mapId, String buildingId, String florid, Handler handler) {
-        new Thread(new QueryIndoorMapRunnable(mapId, buildingId, florid, handler)).start();
+        Log.e("queryIndoorMap", mapId+","+buildingId+","+florid);
+        executorService.execute(new QueryIndoorMapRunnable(mapId, buildingId, florid, handler));
     }
 
     private static class QueryIndoorMapRunnable implements Runnable {
@@ -114,16 +119,15 @@ import java.util.List;
             queryParameter.attributeFilter = "BuildingId = \"" + buildingId + "\"";
             sqlParameters.queryParameter = queryParameter;
 
+            Log.e("QueryIndoorMapRunnable", Common.getHost() + Common.DATA_URL());
             GetFeaturesBySQLService sqlService = new GetFeaturesBySQLService(Common.getHost() + Common.DATA_URL());
             MyGetFeaturesEventListener listener = new MyGetFeaturesEventListener();
-            Log.i("--indoor", "indoor begin");
             sqlService.process(sqlParameters, listener);
             try {
                 listener.waitUntilProcessed();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.i("--indoor", "indoor end");
 
             List<List<Point2D>> buildingGeometry = null;
             Rectangle2D buildingBounds = null;
@@ -161,21 +165,21 @@ import java.util.List;
 
             sqlParameters.datasetNames = new String[] { Common.parkId()+":"+florid };
             sqlParameters.queryParameter.attributeFilter = "BuildingId = \"" + buildingId + "\"";
-
-            Log.i("--indoor", "indoor begin");
             sqlService.process(sqlParameters, listener);
             try {
                 listener.waitUntilProcessed();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.i("--indoor", "indoor end");
 
             List<ModelData> rooms = null;
             GetFeaturesResult floor = listener.getReult();
             if (floor != null && floor.features != null) {
                 rooms = new ArrayList<>();
                 for (Feature feature : floor.features) {
+                    for (int i = 0; i < feature.fieldValues.length; i++) {
+                        Log.e("QueryIndoorMapRunnable", feature.fieldValues[i]);
+                    }
                     Geometry geometry = feature.geometry;
                     List<List<Point2D>> roomPoints = new ArrayList<>();
                     List<Point2D> geoPoints = getPiontsFromGeometry(geometry);
@@ -198,17 +202,13 @@ import java.util.List;
                     rooms.add(new ModelData(key, null, roomPoints, info));
                 }
             }
-
             sqlParameters.datasetNames = new String[] { Common.parkId()+":"+florid+"_LINE" };
-
-            Log.i("--indoor", "indoor begin");
             sqlService.process(sqlParameters, listener);
             try {
                 listener.waitUntilProcessed();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.i("--indoor", "indoor end");
 
             floor = listener.getReult();
             if (floor != null && floor.features != null) {

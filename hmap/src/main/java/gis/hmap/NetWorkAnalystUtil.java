@@ -281,244 +281,425 @@ class NetWorkAnalystUtil {
 
         private List<List<WayPoint>> insertStageInoutLift() {
             List<List<WayPoint>> newNodes = new ArrayList<>();
-            List<WayPoint> section = new ArrayList<>();
-            for (int i=0; i<nodes.size()-1; i++) {
+            for (int i = 0; i < nodes.size()-1; i++) {
                 WayPoint A = nodes.get(i);
                 WayPoint B = nodes.get(i+1);
-                section.add(A);
+
+                List<WayPoint> part;
                 try {
-                    if (TextUtils.isEmpty(A.building) && TextUtils.isEmpty(A.floor) &&
-                        TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor)) {
-                        // 从室外->出入口->电梯->地下室
-                        WayPoint node = null, node2 = null;
-                        node = findNearByInout(A, null);
-                        if (node != null) {
-                            node2 = new WayPoint(node.point.x, node.point.y, node.building, "F1", node.catalog);
-                            section.add(node);
-                        }
-                        newNodes.add(section);
+                    //查询A楼出入口
+                    WayPoint nodeA = findNearByInout(A, A.building);
+                    WayPoint nodeA2 = new WayPoint(nodeA.point.x, nodeA.point.y, nodeA.building, "", nodeA.catalog);
+                    //查询B楼出入口
+                    WayPoint nodeB = findNearByInout(B, B.building);
+                    WayPoint nodeB2 = new WayPoint(nodeB.point.x, nodeB.point.y, nodeB.building, "", nodeB.catalog);
 
-                        section = new ArrayList<>();
-                        WayPoint pass = null;
-                        if (node2 != null) {
-                            section.add(node2);
-                            pass = findNearByLift(node2, node2.building);
-                            if (pass != null)
-                                section.add(pass);
-                        }
-                        newNodes.add(section);
+                    //查询A楼电梯
+                    WayPoint liftA = findNearByLift(A, A.building);
+                    //查询B楼电梯
+                    WayPoint liftB = findNearByLift(B, B.building);
 
-                        section = new ArrayList<>();
-                        if (pass != null) {
-                            pass = new WayPoint(pass.point.x, pass.point.y, "", B.floor, pass.catalog);
-                            if (pass != null)
-                                section.add(pass);
-                        }
-                    } else if (TextUtils.isEmpty(A.building) && TextUtils.isEmpty(A.floor) &&
-                                !TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor)) {
-                        // 从室外->出入口->电梯->室内
-                        WayPoint node = null, node2 = null;
-                        node = findNearByInout(A, B.building);
-                        if (node != null) {
-                            node2 = new WayPoint(node.point.x, node.point.y, node.building, "F1", node.catalog);
-                            section.add(node);
-                        }
-                        newNodes.add(section);
+                    if (A.building.equalsIgnoreCase(B.building)) {//相同楼栋
+                        if (A.floor.equalsIgnoreCase(B.floor)) {//相同楼栋、相同楼层
+                            part = new ArrayList<>();
+                            part.add(A);
+                            part.add(B);
+                            newNodes.add(part);
+                        } else {//相同楼栋、不同楼层
+                            part = new ArrayList<>();
+                            part.add(A);
+                            part.add(liftA);
+                            newNodes.add(part);
 
-                        section = new ArrayList<>();
-                        if (node2 != null)
-                            section.add(node2);
-                        if (B.floor != "F1") {
-                            WayPoint pass = null;
-                            if (node2 != null) {
-                                pass = findNearByLift(node2, node2.building);
-                                section.add(pass);
+                            part = new ArrayList<>();
+                            part.add(new WayPoint(liftA.point.x, liftA.point.y, liftA.building, B.floor, liftA.catalog));
+                            part.add(B);
+                            newNodes.add(part);
+                        }
+                    } else {//不同楼栋
+                        if (A.floor.equalsIgnoreCase(B.floor)) {//不同楼栋、相同楼层
+                            if (A.floor.equalsIgnoreCase("F1") || B.floor.equalsIgnoreCase("F1")) {//都是F1
+                                part = new ArrayList<>();
+                                part.add(A);
+                                part.add(nodeA);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeA);
+                                part.add(nodeA2);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeA2);
+                                part.add(nodeB);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeB);
+                                part.add(B);
+                                newNodes.add(part);
+                            } else {//都是非F1的同一层楼
+                                part = new ArrayList<>();
+                                part.add(A);
+                                part.add(liftA);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(liftA);
+                                part.add(nodeA);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeA);
+                                part.add(nodeA2);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeA2);
+                                part.add(nodeB);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeB);
+                                part.add(new WayPoint(nodeB.point.x, nodeB.point.y, nodeB.building, "F1", nodeB.catalog));
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(new WayPoint(nodeB.point.x, nodeB.point.y, nodeB.building, "F1", nodeB.catalog));
+                                part.add(new WayPoint(liftB.point.x, liftB.point.y, liftB.building, "F1", liftB.catalog));
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(new WayPoint(liftB.point.x, liftB.point.y, liftB.building, "F1", liftB.catalog));
+                                part.add(new WayPoint(liftB.point.x, liftB.point.y, liftB.building, B.floor, liftB.catalog));
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(new WayPoint(liftB.point.x, liftB.point.y, liftB.building, B.floor, liftB.catalog));
+                                part.add(B);
+                                newNodes.add(part);
                             }
-                            newNodes.add(section);
+                        } else {//不同楼栋、不同楼层
+                            if (A.floor.equalsIgnoreCase("F1") && !B.floor.equalsIgnoreCase("F1")) {
+                                part = new ArrayList<>();
+                                part.add(A);
+                                part.add(nodeA);
+                                newNodes.add(part);
 
-                            section = new ArrayList<>();
-                            if (pass != null) {
-                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
-                                section.add(pass);
+                                part = new ArrayList<>();
+                                part.add(nodeA);
+                                part.add(nodeA2);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeA2);
+                                part.add(nodeB);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeB);
+                                part.add(new WayPoint(nodeB.point.x, nodeB.point.y, nodeB.building, A.floor, nodeB.catalog));
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(new WayPoint(nodeB.point.x, nodeB.point.y, nodeB.building, A.floor, nodeB.catalog));
+                                part.add(new WayPoint(liftB.point.x, liftB.point.y, liftB.building, A.floor, liftB.catalog));
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(new WayPoint(liftB.point.x, liftB.point.y, liftB.building, A.floor, liftB.catalog));
+                                part.add(liftB);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(liftB);
+                                part.add(B);
+                                newNodes.add(part);
+                            } else if (!A.floor.equalsIgnoreCase("F1") && B.floor.equalsIgnoreCase("F1")) {
+                                part = new ArrayList<>();
+                                part.add(A);
+                                part.add(liftA);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(liftA);
+                                part.add(new WayPoint(liftA.point.x, liftA.point.y, liftA.building, B.floor, liftA.catalog));
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(new WayPoint(liftA.point.x, liftA.point.y, liftA.building, B.floor, liftA.catalog));
+                                part.add(new WayPoint(nodeA.point.x, nodeA.point.y, nodeA.building, B.floor, nodeA.catalog));
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(new WayPoint(nodeA.point.x, nodeA.point.y, nodeA.building, B.floor, nodeA.catalog));
+                                part.add(nodeA);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeA);
+                                part.add(nodeA2);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeA2);
+                                part.add(nodeB);
+                                newNodes.add(part);
+
+                                part = new ArrayList<>();
+                                part.add(nodeB);
+                                part.add(B);
+                                newNodes.add(part);
                             }
-                        }
-                    } else if (TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
-                                TextUtils.isEmpty(B.building) && TextUtils.isEmpty(B.floor)) {
-                        // 从地下室->电梯->出入口->室外
-                        WayPoint pass = findNearByLift(A, null);
-                        if (pass != null)
-                            section.add(pass);
-                        newNodes.add(section);
-
-                        section = new ArrayList<>();
-                        WayPoint node = null, node2 = null;
-                        if (pass != null) {
-                            pass = new WayPoint(pass.point.x, pass.point.y, pass.building, "F1", pass.catalog);
-                            if (pass != null) {
-                                section.add(pass);
-                                node = findNearByInout(pass, pass.building);
-                                if (node != null) {
-                                    node2 = new WayPoint(node.point.x, node.point.y, node.building, "", node.catalog);
-                                    section.add(node);
-                                }
-                            }
-                        }
-                        newNodes.add(section);
-
-                        section = new ArrayList<>();
-                        if (node2 != null)
-                            section.add(node2);
-                    } else if (TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
-                                TextUtils.isEmpty(B.floor)) {
-                        if (TextUtils.isEmpty(B.building)) {
-                            // 从地下室->电梯->地下室
-                            WayPoint pass = findNearByLift(A, null);
-                            if (pass != null)
-                                section.add(pass);
-                            newNodes.add(section);
-
-                            section = new ArrayList<>();
-                            if (pass != null) {
-                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
-                                section.add(pass);
-                            }
-                        } else {
-                            // 从地下室->电梯->室内
-                            WayPoint pass = findNearByLift(A, B.building);
-                            if (pass != null)
-                                section.add(pass);
-                            newNodes.add(section);
-
-                            section = new ArrayList<>();
-                            if (pass != null) {
-                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
-                                section.add(pass);
-                            }
-                        }
-                    } else if (!TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
-                            TextUtils.isEmpty(B.building) && TextUtils.isEmpty(B.floor)) {
-                        // 从室内->电梯->出入口->室外
-                        WayPoint node = null, node2 = null;
-                        if (A.floor != "F1") {
-                            WayPoint pass = findNearByLift(A, A.building);
-                            if (pass != null)
-                                section.add(pass);
-                            newNodes.add(section);
-
-                            section = new ArrayList<>();
-                            if (pass != null) {
-                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, "F1", pass.catalog);
-                                section.add(pass);
-                                node = findNearByInout(pass, pass.building);
-                            }
-                        } else
-                            node = findNearByInout(A, A.building);
-
-                        if (node != null) {
-                            node2 = new WayPoint(node.point.x, node.point.y, node.building, "", node.catalog);
-                            section.add(node);
-                        }
-                        newNodes.add(section);
-
-                        section = new ArrayList<>();
-                        if (node2 != null)
-                            section.add(node2);
-                    } else if (!TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
-                                !TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor) &&
-                                !A.building.equalsIgnoreCase(B.building)) {
-                        // 从室内->电梯->出入口A->出入口B->电梯->室内
-                        WayPoint nodeA = null, nodeA2 = null;
-                        if (A.floor != "F1") {
-                            WayPoint pass = findNearByLift(A, A.building);
-                            if (pass != null)
-                                section.add(pass);
-                            newNodes.add(section);
-
-                            section = new ArrayList<>();
-                            if (pass != null) {
-                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, "F1", pass.catalog);
-                                section.add(pass);
-                                nodeA = findNearByInout(pass, pass.building);
-                            }
-                        } else
-                            nodeA = findNearByInout(A, A.building);
-                        if (nodeA != null) {
-                            nodeA2 = new WayPoint(nodeA.point.x, nodeA.point.y, nodeA.building, "", nodeA.catalog);
-                            section.add(nodeA);
-                        }
-                        newNodes.add(section);
-
-                        section = new ArrayList<>();
-                        WayPoint nodeB = null, nodeB2 = null;
-                        if (nodeA2 != null) {
-                            section.add(nodeA2);
-                            nodeB = findNearByInout(nodeA2, B.building);
-                            if (nodeB != null) {
-                                nodeB2 = new WayPoint(nodeB.point.x, nodeB.point.y, nodeB.building, "F1", nodeB.catalog);
-                                section.add(nodeB);
-                            }
-                        }
-                        newNodes.add(section);
-
-                        section = new ArrayList<>();
-                        if (nodeB2 != null)
-                            section.add(nodeB2);
-                        if (B.floor != "F1") {
-                            WayPoint pass = null;
-                            if (nodeB2 != null) {
-                                pass = findNearByLift(nodeB2, nodeB2.building);
-                                if (pass != null)
-                                    section.add(pass);
-                            }
-                            newNodes.add(section);
-
-                            section = new ArrayList<>();
-                            if (pass != null) {
-                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
-                                if (pass != null)
-                                    section.add(pass);
-                            }
-                        }
-                    } else if (!TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
-                            !TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor) &&
-                            A.building.equalsIgnoreCase(B.building) && !A.floor.equalsIgnoreCase(B.floor)) {
-                        // 从室内->电梯->室内
-                        WayPoint pass = findNearByLift(A, A.building);
-                        if (pass != null)
-                            section.add(pass);
-                        newNodes.add(section);
-
-                        section = new ArrayList<>();
-                        if (pass != null) {
-                            pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
-                            if (pass != null)
-                                section.add(pass);
-                        }
-                    } else if (!TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
-                            TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor)) {
-                        // 从室内->电梯->地下室
-                        WayPoint pass = findNearByLift(A, A.building);
-                        if (pass != null)
-                            section.add(pass);
-                        newNodes.add(section);
-
-                        section = new ArrayList<>();
-                        if (pass != null) {
-                            pass = new WayPoint(pass.point.x, pass.point.y, "", B.floor, pass.catalog);
-                            if (pass != null)
-                                section.add(pass);
                         }
                     }
                 } catch (Exception ex) {
                     Log.e("insertStageInoutLift", ex.getMessage());
                 }
-                if (i == nodes.size()-2)
-                    section.add(B);
             }
-            newNodes.add(section);
-
             return newNodes;
         }
+
+//        private List<List<WayPoint>> insertStageInoutLift() {
+//            List<List<WayPoint>> newNodes = new ArrayList<>();
+//            List<WayPoint> section = new ArrayList<>();
+//            for (int i=0; i<nodes.size()-1; i++) {
+//                WayPoint A = nodes.get(i);
+//                WayPoint B = nodes.get(i+1);
+//                section.add(A);
+//                try {
+//                    if (TextUtils.isEmpty(A.building) && TextUtils.isEmpty(A.floor) &&
+//                            TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor)) {
+//                        // 从室外->出入口->电梯->地下室
+//                        WayPoint node = null, node2 = null;
+//                        node = findNearByInout(A, null);
+//                        if (node != null) {
+//                            node2 = new WayPoint(node.point.x, node.point.y, node.building, "F1", node.catalog);
+//                            section.add(node);
+//                        }
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        WayPoint pass = null;
+//                        if (node2 != null) {
+//                            section.add(node2);
+//                            pass = findNearByLift(node2, node2.building);
+//                            if (pass != null)
+//                                section.add(pass);
+//                        }
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        if (pass != null) {
+//                            pass = new WayPoint(pass.point.x, pass.point.y, "", B.floor, pass.catalog);
+//                            if (pass != null)
+//                                section.add(pass);
+//                        }
+//                    } else if (TextUtils.isEmpty(A.building) && TextUtils.isEmpty(A.floor) &&
+//                            !TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor)) {
+//                        // 从室外->出入口->电梯->室内
+//                        WayPoint node = null, node2 = null;
+//                        node = findNearByInout(A, B.building);
+//                        if (node != null) {
+//                            node2 = new WayPoint(node.point.x, node.point.y, node.building, "F1", node.catalog);
+//                            section.add(node);
+//                        }
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        if (node2 != null)
+//                            section.add(node2);
+//                        if (B.floor != "F1") {
+//                            WayPoint pass = null;
+//                            if (node2 != null) {
+//                                pass = findNearByLift(node2, node2.building);
+//                                section.add(pass);
+//                            }
+//                            newNodes.add(section);
+//
+//                            section = new ArrayList<>();
+//                            if (pass != null) {
+//                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
+//                                section.add(pass);
+//                            }
+//                        }
+//                    } else if (TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
+//                            TextUtils.isEmpty(B.building) && TextUtils.isEmpty(B.floor)) {
+//                        // 从地下室->电梯->出入口->室外
+//                        WayPoint pass = findNearByLift(A, null);
+//                        if (pass != null)
+//                            section.add(pass);
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        WayPoint node = null, node2 = null;
+//                        if (pass != null) {
+//                            pass = new WayPoint(pass.point.x, pass.point.y, pass.building, "F1", pass.catalog);
+//                            if (pass != null) {
+//                                section.add(pass);
+//                                node = findNearByInout(pass, pass.building);
+//                                if (node != null) {
+//                                    node2 = new WayPoint(node.point.x, node.point.y, node.building, "", node.catalog);
+//                                    section.add(node);
+//                                }
+//                            }
+//                        }
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        if (node2 != null)
+//                            section.add(node2);
+//                    } else if (TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
+//                            TextUtils.isEmpty(B.floor)) {
+//                        if (TextUtils.isEmpty(B.building)) {
+//                            // 从地下室->电梯->地下室
+//                            WayPoint pass = findNearByLift(A, null);
+//                            if (pass != null)
+//                                section.add(pass);
+//                            newNodes.add(section);
+//
+//                            section = new ArrayList<>();
+//                            if (pass != null) {
+//                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
+//                                section.add(pass);
+//                            }
+//                        } else {
+//                            // 从地下室->电梯->室内
+//                            WayPoint pass = findNearByLift(A, B.building);
+//                            if (pass != null)
+//                                section.add(pass);
+//                            newNodes.add(section);
+//
+//                            section = new ArrayList<>();
+//                            if (pass != null) {
+//                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
+//                                section.add(pass);
+//                            }
+//                        }
+//                    } else if (!TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
+//                            TextUtils.isEmpty(B.building) && TextUtils.isEmpty(B.floor)) {
+//                        // 从室内->电梯->出入口->室外
+//                        WayPoint node = null, node2 = null;
+//                        if (A.floor != "F1") {
+//                            WayPoint pass = findNearByLift(A, A.building);
+//                            if (pass != null)
+//                                section.add(pass);
+//                            newNodes.add(section);
+//
+//                            section = new ArrayList<>();
+//                            if (pass != null) {
+//                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, "F1", pass.catalog);
+//                                section.add(pass);
+//                                node = findNearByInout(pass, pass.building);
+//                            }
+//                        } else
+//                            node = findNearByInout(A, A.building);
+//
+//                        if (node != null) {
+//                            node2 = new WayPoint(node.point.x, node.point.y, node.building, "", node.catalog);
+//                            section.add(node);
+//                        }
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        if (node2 != null)
+//                            section.add(node2);
+//                    } else if (!TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
+//                            !TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor) &&
+//                            !A.building.equalsIgnoreCase(B.building)) {
+//                        // 从室内->电梯->出入口A->出入口B->电梯->室内
+//                        WayPoint nodeA = null, nodeA2 = null;
+//                        if (A.floor != "F1") {
+//                            WayPoint pass = findNearByLift(A, A.building);
+//                            if (pass != null)
+//                                section.add(pass);
+//                            newNodes.add(section);
+//
+//                            section = new ArrayList<>();
+//                            if (pass != null) {
+//                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, "F1", pass.catalog);
+//                                section.add(pass);
+//                                nodeA = findNearByInout(pass, pass.building);
+//                            }
+//                        } else
+//                            nodeA = findNearByInout(A, A.building);
+//                        if (nodeA != null) {
+//                            nodeA2 = new WayPoint(nodeA.point.x, nodeA.point.y, nodeA.building, "", nodeA.catalog);
+//                            section.add(nodeA);
+//                        }
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        WayPoint nodeB = null, nodeB2 = null;
+//                        if (nodeA2 != null) {
+//                            section.add(nodeA2);
+//                            nodeB = findNearByInout(nodeA2, B.building);
+//                            if (nodeB != null) {
+//                                nodeB2 = new WayPoint(nodeB.point.x, nodeB.point.y, nodeB.building, "F1", nodeB.catalog);
+//                                section.add(nodeB);
+//                            }
+//                        }
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        if (nodeB2 != null)
+//                            section.add(nodeB2);
+//                        if (B.floor != "F1") {
+//                            WayPoint pass = null;
+//                            if (nodeB2 != null) {
+//                                pass = findNearByLift(nodeB2, nodeB2.building);
+//                                if (pass != null)
+//                                    section.add(pass);
+//                            }
+//                            newNodes.add(section);
+//
+//                            section = new ArrayList<>();
+//                            if (pass != null) {
+//                                pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
+//                                if (pass != null)
+//                                    section.add(pass);
+//                            }
+//                        }
+//                    } else if (!TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
+//                            !TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor) &&
+//                            A.building.equalsIgnoreCase(B.building) && !A.floor.equalsIgnoreCase(B.floor)) {
+//                        // 从室内->电梯->室内
+//                        WayPoint pass = findNearByLift(A, A.building);
+//                        if (pass != null)
+//                            section.add(pass);
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        if (pass != null) {
+//                            pass = new WayPoint(pass.point.x, pass.point.y, pass.building, B.floor, pass.catalog);
+//                            if (pass != null)
+//                                section.add(pass);
+//                        }
+//                    } else if (!TextUtils.isEmpty(A.building) && !TextUtils.isEmpty(A.floor) &&
+//                            TextUtils.isEmpty(B.building) && !TextUtils.isEmpty(B.floor)) {
+//                        // 从室内->电梯->地下室
+//                        WayPoint pass = findNearByLift(A, A.building);
+//                        if (pass != null)
+//                            section.add(pass);
+//                        newNodes.add(section);
+//
+//                        section = new ArrayList<>();
+//                        if (pass != null) {
+//                            pass = new WayPoint(pass.point.x, pass.point.y, "", B.floor, pass.catalog);
+//                            if (pass != null)
+//                                section.add(pass);
+//                        }
+//                    }
+//                } catch (Exception ex) {
+//                    Log.e("insertStageInoutLift", ex.getMessage());
+//                }
+//                if (i == nodes.size()-2)
+//                    section.add(B);
+//            }
+//            newNodes.add(section);
+//
+//            return newNodes;
+//        }
 
         private WayPoint findNearByInout(WayPoint p, String building) {
             WayPoint result = null;

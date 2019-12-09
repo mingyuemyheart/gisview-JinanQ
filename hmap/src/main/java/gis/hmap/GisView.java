@@ -1077,8 +1077,7 @@ public class GisView extends RelativeLayout
         }
     }
 
-    private void loadOffLineMaps(String name, int zoom, double[] center)
-    {
+    private void loadOffLineMaps(String name, int zoom, double[] center) {
         mapLayer = new LayerView(getContext());
         mapLayer.setURL(Common.getHost() + Common.MAP_URL());
 //        mapLayer.setExtParams(Common.extParam());
@@ -1452,69 +1451,71 @@ public class GisView extends RelativeLayout
             if (TextUtils.isEmpty(buildingId)) {
                 QueryUtils.queryBasementMap(Common.parkId(), floorid, handler);
             } else {
-                Feature buildingFeature = GisDataCache.getInstance(this.getContext()).getBuilding(buildingId);
-                Feature[] floorFeatures = GisDataCache.getInstance(this.getContext()).getFloor(buildingId, floorid);
-                if (buildingFeature != null && floorFeatures != null && floorFeatures.length > 0 ) {
-                    List<List<Point2D>> buildingGeometry = new ArrayList<>();
-                    if (buildingFeature.geometry != null) {
-                        int index = 0;
-                        for (int i=0; i<buildingFeature.geometry.parts.length; i++) {
-                            List<Point2D> point2DS = new ArrayList<>();
-                            for (int j=0; j<buildingFeature.geometry.parts[i]; j++) {
-                                Point2D point2D = new Point2D();
-                                point2D.x = buildingFeature.geometry.points[index].x;
-                                point2D.y = buildingFeature.geometry.points[index].y;
-                                point2DS.add(point2D);
-                                index++;
-                            }
-                            buildingGeometry.add(point2DS);
-                        }
-                    }
-                    List<ModelData> rooms = new ArrayList<>();
-                    for (Feature feature : floorFeatures) {
-                        if (feature == null)
-                            continue;
-                        if (feature.geometry == null)
-                            continue;
-
-                        HashMap<String, String> info = new HashMap<>();
-                        for (int i=0; i<feature.fieldNames.length; i++)
-                            info.put(feature.fieldNames[i], feature.fieldValues[i]);
-                        info.put("FLOORID", floorid);
-                        String key = String.format("%s.%s.%s", buildingId, floorid, info.get("SMID"));
-                        List<List<Point2D>> geometry = new ArrayList<>();
-                        int index = 0;
-                        for (int i=0; i<feature.geometry.parts.length; i++) {
-                            List<Point2D> point2DS = new ArrayList<>();
-                            for (int j=0; j<feature.geometry.parts[i]; j++) {
-                                Point2D point2D = new Point2D();
-                                point2D.x = feature.geometry.points[index].x;
-                                point2D.y = feature.geometry.points[index].y;
-                                point2DS.add(point2D);
-                                index++;
-                            }
-                            geometry.add(point2DS);
-                        }
-                        if (feature.geometry.type == GeometryType.REGION) {
-                            ModelData room = new ModelData(key, null, geometry, info);
-                            rooms.add(room);
-                        } else {
-                            ModelData room = new ModelData(key, geometry, null, info);
-                            rooms.add(room);
-                        }
-                    }
-                    IndoorMapData indoorMapData = new IndoorMapData(
-                            buildingId,
-                            floorid,
-                            buildingGeometry,
-                            buildingFeature.geometry.getBounds(),
-                            rooms);
-                    Message msg = new Message();
-                    msg.obj = indoorMapData;
-                    msg.what = Common.QUERY_INDOOR_MAP;
-                    handler.sendMessage(msg);
-                } else
+//                Feature buildingFeature = GisDataCache.getInstance(this.getContext()).getBuilding(buildingId);
+//                Feature[] floorFeatures = GisDataCache.getInstance(this.getContext()).getFloor(buildingId, floorid);
+//                if (buildingFeature != null && floorFeatures != null && floorFeatures.length > 0 ) {
+//                    Log.e("queryIndoorMap1", buildingFeature.toString()+","+floorFeatures.toString());
+//                    List<List<Point2D>> buildingGeometry = new ArrayList<>();
+//                    if (buildingFeature.geometry != null) {
+//                        int index = 0;
+//                        for (int i=0; i<buildingFeature.geometry.parts.length; i++) {
+//                            List<Point2D> point2DS = new ArrayList<>();
+//                            for (int j=0; j<buildingFeature.geometry.parts[i]; j++) {
+//                                Point2D point2D = new Point2D();
+//                                point2D.x = buildingFeature.geometry.points[index].x;
+//                                point2D.y = buildingFeature.geometry.points[index].y;
+//                                point2DS.add(point2D);
+//                                index++;
+//                            }
+//                            buildingGeometry.add(point2DS);
+//                        }
+//                    }
+//                    List<ModelData> rooms = new ArrayList<>();
+//                    for (Feature feature : floorFeatures) {
+//                        if (feature == null)
+//                            continue;
+//                        if (feature.geometry == null)
+//                            continue;
+//
+//                        HashMap<String, String> info = new HashMap<>();
+//                        for (int i=0; i<feature.fieldNames.length; i++)
+//                            info.put(feature.fieldNames[i], feature.fieldValues[i]);
+//                        info.put("FLOORID", floorid);
+//                        String key = String.format("%s.%s.%s", buildingId, floorid, info.get("SMID"));
+//                        List<List<Point2D>> geometry = new ArrayList<>();
+//                        int index = 0;
+//                        for (int i=0; i<feature.geometry.parts.length; i++) {
+//                            List<Point2D> point2DS = new ArrayList<>();
+//                            for (int j=0; j<feature.geometry.parts[i]; j++) {
+//                                Point2D point2D = new Point2D();
+//                                point2D.x = feature.geometry.points[index].x;
+//                                point2D.y = feature.geometry.points[index].y;
+//                                point2DS.add(point2D);
+//                                index++;
+//                            }
+//                            geometry.add(point2DS);
+//                        }
+//                        if (feature.geometry.type == GeometryType.REGION) {
+//                            ModelData room = new ModelData(key, null, geometry, info);
+//                            rooms.add(room);
+//                        } else {
+//                            ModelData room = new ModelData(key, geometry, null, info);
+//                            rooms.add(room);
+//                        }
+//                    }
+//                    IndoorMapData indoorMapData = new IndoorMapData(
+//                            buildingId,
+//                            floorid,
+//                            buildingGeometry,
+//                            buildingFeature.geometry.getBounds(),
+//                            rooms);
+//                    Message msg = new Message();
+//                    msg.obj = indoorMapData;
+//                    msg.what = Common.QUERY_INDOOR_MAP;
+//                    handler.sendMessage(msg);
+//                } else {
                     QueryUtils.queryIndoorMap(Common.parkId() + ":Buildings", buildingId, floorid, handler);
+//                }
             }
         }
     }

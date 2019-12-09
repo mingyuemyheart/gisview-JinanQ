@@ -1,7 +1,6 @@
 package gis.gisdemo;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -10,46 +9,39 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
-import android.text.InputType;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
-import java.util.Random;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.hw.ics.locsdk.AppMsgHandlerLoc;
-import gis.hmap.GeoLocation;
-import gis.hmap.GeoServiceCallback;
-import gis.hmap.GisView;
-import gis.hmap.HeatPoint;
 import gis.hmap.BuildingEvent;
 import gis.hmap.BuildingListener;
 import gis.hmap.FlashMarker;
 import gis.hmap.GeneralMarker;
+import gis.hmap.GeoLocation;
+import gis.hmap.GeoServiceCallback;
+import gis.hmap.GisView;
+import gis.hmap.HeatPoint;
 import gis.hmap.IndoorCallback;
 import gis.hmap.LocationEvent;
 import gis.hmap.LocationListener;
 import gis.hmap.MapEvent;
 import gis.hmap.MapListener;
-import gis.hmap.Marker;
 import gis.hmap.MarkerEvent;
 import gis.hmap.MarkerListener;
 import gis.hmap.ModelEvent;
@@ -89,16 +81,13 @@ public class MainActivity extends AppCompatActivity
             "android.permission.VIBRATE",
             "android.permission.WAKE_LOCK"};
 
-    private Handler mHandler;
-
-
     private int cnt = 0;
     private String markerId;
     private boolean permissionflag = false; //
     private Handler mainHandler= new Handler();
-    private  Object popup = null;
-    private ArrayList<Object> popups = new ArrayList<Object>();
+    private ArrayList<Object> popups = new ArrayList<>();
     GisView gisView = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,7 +96,8 @@ public class MainActivity extends AppCompatActivity
 
         gisView = (GisView) findViewById(R.id.gisView);
 //        gisView.setGisServer("http://apigw-beta.huawei.com/api");
-        gisView.setGisServer("http://42.202.130.191:8090/iserver/services");
+//        gisView.setGisServer("http://42.202.130.191:8090/iserver/services");//测试地址
+        gisView.setGisServer("http://182.16.132.12:8090/iserver/services");//济南本地正式地址
 //        gisView.setGisServer("http://mcloud-uat.huawei.com/mcloud/mag/FreeProxyForText/BTYQ_json");
 //        gisView.setGisServer("https://42.202.130.191:443/iserver/services");
 //        gisView.setGisServer("http://iserver.raytue.com:8090/iserver");
@@ -312,6 +302,8 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.unloadMap) {
             gisView.destroyMap();
             //加载楼层
+        } else if (id == R.id.loadA03B1) {
+            gisView.showIndoorMap("A03","B1", this);
         } else if (id == R.id.loadF1) {
             gisView.showIndoorMap("A03","F1", this);
         } else if (id == R.id.loadF2) {
@@ -327,9 +319,9 @@ public class MainActivity extends AppCompatActivity
             roomStyle.lineWidth = 2;
             roomStyle.fillColor = Color.parseColor("#009090");
             roomStyle.fillOpacity = 128;
-            gisView.setRoomStyle("A03", "F1", "8107", roomStyle);
+            gisView.setRoomStyle("A03", "F1", "8187", roomStyle);
         } else if (id == R.id.delroomstyle) {
-            gisView.setRoomStyle("A03", "F1", "8107", null);
+            gisView.setRoomStyle("A03", "F1", "8187", null);
         } else if (id == R.id.typestyle) {
             RoomStyle roomStyle = new RoomStyle();
             roomStyle.lineColor = Color.parseColor("#ff0000");
@@ -481,31 +473,72 @@ public class MainActivity extends AppCompatActivity
                 routePoints[i] = routePoint;
             }
             gisView.drawCustomPath(routePoints);
-        } else if(id == R.id.caclRoute){
+        } else if(id == R.id.caclRouteA03F1){
+            PresentationStyle ps = new PresentationStyle();
+            ps.opacity = 120;
+            ps.fillColor = Color.parseColor("#02D6F2");
+            ps.lineWidth = 20;
+
+//            //不同楼栋、相同楼层，没问题
 //            gisView.calcRoutePath(
-//                    new RoutePoint(new double[] { 22.972897436243493, 113.35581243077175 },
+//                    new RoutePoint(new double[] { 36.653610, 117.170265 },
 //                            Color.parseColor("#F20216"),
-//                            "", "", 20, 100),
-//                    new RoutePoint(new double[] { 22.972386774354412, 113.35689159098212 },
+//                            "A03", "F2", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64,64),
+//                    new RoutePoint(new double[] { 36.653102,117.170119 },
 //                            Color.parseColor("#F20216"),
-//                            "", "", 20, 100),
+//                            "A04", "F2", 20, 100, getResources().getDrawable(R.drawable.marker_1), 64, 64),
 //                    new RoutePoint[] {
-//                            new RoutePoint(new double[] { 22.972724848576696, 113.35585224707808 },
+////                            new RoutePoint(new double[] { 36.65418334779979, 117.1704206617127 },
+////                                    Color.parseColor("#F20216"),
+////                                    "", "", 20, 100, getResources().getDrawable(R.drawable.marker_2), 64, 64)
+//                    },
+//                    ps);
+
+//            //相同楼栋、相同楼层，没问题
+//            gisView.calcRoutePath(
+//                    new RoutePoint(new double[] { 36.653060, 117.170118 },
+//                            Color.parseColor("#F20216"),
+//                            "A04", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_1), 64, 64),
+//                    new RoutePoint(new double[] { 36.652852, 117.170655 },
+//                            Color.parseColor("#F20216"),
+//                            "A04", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64,64),
+//                    new RoutePoint[] {
+////                            new RoutePoint(new double[] { 36.65418334779979, 117.1704206617127 },
+////                                    Color.parseColor("#F20216"),
+////                                    "", "", 20, 100, getResources().getDrawable(R.drawable.marker_2), 64, 64)
+//                    },
+//                    ps);
+
+//            //相同楼栋、不同楼层，没问题
+//            gisView.calcRoutePath(
+//                    new RoutePoint(new double[] { 36.652924, 117.170540 },
+//                            Color.parseColor("#F20216"),
+//                            "A04", "F2", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64,64),
+//                    new RoutePoint(new double[] { 36.653102, 117.170119 },
+//                            Color.parseColor("#F20216"),
+//                            "A04", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_1), 64, 64),
+//                    new RoutePoint[] {
+////                            new RoutePoint(new double[] { 36.65418334779979, 117.1704206617127 },
+////                                    Color.parseColor("#F20216"),
+////                                    "", "", 20, 100, getResources().getDrawable(R.drawable.marker_2), 64, 64)
+//                    },
+//                    ps);
+
+            //不同楼栋、不同楼层，没问题
+            gisView.calcRoutePath(
+                    new RoutePoint(new double[] { 36.653610, 117.170265 },
+                            Color.parseColor("#F20216"),
+                            "A03", "F2", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64,64),
+                    new RoutePoint(new double[] { 36.653102, 117.170119 },
+                            Color.parseColor("#F20216"),
+                            "A04", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_1), 64, 64),
+                    new RoutePoint[] {
+//                            new RoutePoint(new double[] { 36.65418334779979, 117.1704206617127 },
 //                                    Color.parseColor("#F20216"),
-//                                    "", "", 20, 100),
-//                            new RoutePoint(new double[] { 22.972630664983477, 113.35606172043653 },
-//                                    Color.parseColor("#F20216"),
-//                                    "", "", 20, 100),
-//                            new RoutePoint(new double[] { 22.97276682508405, 113.3562745404476 },
-//                                    Color.parseColor("#F20216"),
-//                                    "", "", 20, 100),
-//                            new RoutePoint(new double[] { 22.972969445613277, 113.35655969681977 },
-//                                    Color.parseColor("#F20216"),
-//                                    "", "", 20, 100),
-//                            new RoutePoint(new double[] { 22.9724934566077, 113.3569276414497 },
-//                                    Color.parseColor("#F20216"),
-//                                    "", "", 20, 100),
-//                    });
+//                                    "", "", 20, 100, getResources().getDrawable(R.drawable.marker_2), 64, 64)
+                    },
+                    ps);
+        } else if(id == R.id.caclRouteA03F2){
             PresentationStyle ps = new PresentationStyle();
             ps.opacity = 120;
             ps.fillColor = Color.parseColor("#02D6F2");
@@ -516,28 +549,14 @@ public class MainActivity extends AppCompatActivity
                             "A04", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_1), 64, 64),
                     new RoutePoint(new double[] { 36.653610, 117.170265 },
                             Color.parseColor("#F20216"),
-                            "A03", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64,64),
+                            "A03", "F2", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64,64),
                     new RoutePoint[] {
 //                            new RoutePoint(new double[] { 36.65418334779979, 117.1704206617127 },
 //                                    Color.parseColor("#F20216"),
 //                                    "", "", 20, 100, getResources().getDrawable(R.drawable.marker_2), 64, 64)
                     },
                     ps);
-//            PresentationStyle ps = new PresentationStyle();
-//            ps.opacity = 120;
-//            ps.fillColor = Color.parseColor("#02D6F2");
-//            ps.lineWidth = 20;
-//            gisView.calcRoutePath(
-//                    new RoutePoint(new double[]{22.655299147231652, 114.05824998467759},
-//                            Color.parseColor("#F20216"),
-//                            "", "", 20, 100, getResources().getDrawable(R.drawable.marker_1), 64, 64),
-//                    new RoutePoint(new double[]{22.65024607457551, 114.05212154169743},
-//                            Color.parseColor("#F20216"),
-//                            "", "", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64, 64)
-//                    , new RoutePoint[]{},
-//
-//                    ps);
-        } else if(id == R.id.clearRoute){
+        }else if(id == R.id.clearRoute){
             gisView.clearPath();
         } else if(id == R.id.showHeatmap){
             //生成热力图
