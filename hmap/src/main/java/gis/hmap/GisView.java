@@ -7,68 +7,39 @@ import android.graphics.Color;
 import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PathDashPathEffect;
-import android.graphics.PathEffect;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.Region;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationManager;
-import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.DragEvent;
 import android.view.MotionEvent;
-import android.view.TouchDelegate;
 import android.view.View;
+import android.widget.RelativeLayout;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
-import com.amap.api.location.CoordinateConverter;
-import com.amap.api.location.DPoint;
 import com.supermap.android.maps.AbstractTileLayerView;
 import com.supermap.android.maps.BoundingBox;
-import com.supermap.android.maps.CoordinateReferenceSystem;
 import com.supermap.android.maps.DefaultItemizedOverlay;
 import com.supermap.android.maps.DrawableOverlay;
 import com.supermap.android.maps.LayerView;
 import com.supermap.android.maps.LineOverlay;
-import com.supermap.android.maps.MBTilesLayerView;
 import com.supermap.android.maps.MapController;
 import com.supermap.android.maps.MapView;
-import com.supermap.android.maps.MultiPolygon;
-import com.supermap.android.maps.MultiPolygonOverlay;
 import com.supermap.android.maps.Overlay;
 import com.supermap.android.maps.Point2D;
 import com.supermap.android.maps.PolygonOverlay;
-import com.supermap.android.maps.Tile;
-import com.supermap.services.components.commontypes.Feature;
-import com.supermap.services.components.commontypes.GeometryType;
-import com.supermap.services.components.commontypes.Rectangle2D;
-import com.supermap.services.components.commontypes.VectorTileData;
-
-
-import android.view.ViewGroup;
-import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
-import android.view.accessibility.AccessibilityNodeProvider;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -96,9 +67,14 @@ import cn.hw.ics.locsdk.LocationServer;
 /**
  * TODO: document your custom view class.
  */
-public class GisView extends RelativeLayout
-        implements Overlay.OverlayTapListener, MapView.MapViewEventListener, AMapLocationListener {
-    public static  String TAG = "GISView";
+public class GisView extends RelativeLayout implements Overlay.OverlayTapListener, MapView.MapViewEventListener, AMapLocationListener {
+
+    public static String TAG = "GisView-";
+
+    private boolean logEnable = true;
+    public void setLogEnable(boolean enable) {
+        logEnable = enable;
+    }
 
     private static final String calculatdRouteKey = "[calculatdRoute]";
     private static final String indoorKeyTemplate = "indoor[building:%s]";
@@ -288,7 +264,7 @@ public class GisView extends RelativeLayout
         }
     }
 
-    public static GeoLocation getMyLocation(Context context) {
+    public GeoLocation getMyLocation(Context context) {
         if (_instance != null)
             return _instance.getMyLocation();
 
@@ -536,111 +512,137 @@ public class GisView extends RelativeLayout
         }
     }
 
-    public void getLocationOfAddress(final String address,final int count, final GeoServiceCallback callback){
-
-
-        new Thread(new Runnable(){
-            @Override
-            public void run() {
-               String ret = "[]";
-                try {
-                    ret =  GisView.getStringFromURL(Common.getHost() + Common.GEO_CODE_URL() + "?address="+address+"&fromIndex=0&toIndex=10&maxReturn=" + count);
-
-                }
-                catch (Exception ex){
-                    Log.d(TAG, "getLocationOfAddress: "+ex.getMessage());
-                }
-
-                JSONArray arr = new JSONArray();
-                try {
-                    arr = new JSONArray(ret);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                GeoLocation [] res = new GeoLocation [arr.length()];
-
-
-                for (int i = 0;i < arr.length(); i ++){
-                    res[i] = new GeoLocation();
-                    try {
-                        JSONObject obj = arr.getJSONObject(i);
-                        res[i].address = obj.getString("address");
-                        res[i].lng = obj.getJSONObject("location").getDouble("x");
-                        res[i].lat = obj.getJSONObject("location").getDouble("y") ;
-                        res[i].score = obj.getDouble("score");
-                    }catch (Exception e){
-
-                    }
-
-                }
-
-                if(callback != null)
-                    callback.onQueryAddressFinished(res);
-
-            }
-        }).start();
+    /**
+     * 通过经纬度查询地理位置信息
+     * @param lng
+     * @param lat
+     * @param callback
+     */
+    public void getAddressOfLocation(final double lng, final double lat, final GeoServiceCallback callback) {
+        getAddressOfLocation(lng, lat, -1, -1, callback);
     }
 
+    /**
+     * 通过经纬度查询地理位置信息
+     * @param lng
+     * @param lat
+     * @param radius
+     * @param count
+     * @param callback
+     */
     public void getAddressOfLocation(final double lng, final double lat,final double radius, final int count, final GeoServiceCallback callback){
-
-
-        new Thread(new Runnable(){
-            @Override
-            public void run() {
-                String ret = "[]";
-                try {
-                    String url = Common.getHost() + Common.GEO_DECODE_URL() + "?x=" + lng+ "&y=" + lat+ "&geoDecodingRadius="+radius+"&fromIndex=0&toIndex=10&maxReturn=" + count;
-                    ret =  GisView.getStringFromURL(url);
-
+        new Thread(() -> {
+            String result = "[]";
+            try {
+                String url = String.format("%s%s?x=%s&y=%s&geoDecodingRadius=%s&fromIndex=0&toIndex=10&maxReturn=%s", Common.getHost(), Common.GEO_DECODE_URL(), lng, lat, radius, count);
+                if (logEnable) {
+                    Log.e(TAG+"getAddressOfLocation", url);
                 }
-                catch (Exception ex){
-                    Log.d(TAG, "getLocationOfAddress: "+ex.getMessage());
+                result = getStringFromURL(url);
+                if (logEnable) {
+                    Log.e(TAG+"getAddressOfLocation", result);
                 }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
 
-                JSONArray arr = new JSONArray();
+            JSONArray arr = new JSONArray();
+            try {
+                arr = new JSONArray(result);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            GeoLocation [] res = new GeoLocation [arr.length()];
+            for (int i = 0;i < arr.length(); i ++){
+                res[i] = new GeoLocation();
                 try {
-                    arr = new JSONArray(ret);
-                } catch (JSONException e) {
+                    JSONObject obj = arr.getJSONObject(i);
+                    res[i].address = obj.getString("address");
+                    res[i].lng = obj.getJSONObject("location").getDouble("x");
+                    res[i].lat = obj.getJSONObject("location").getDouble("y") ;
+                    res[i].score = obj.getDouble("score");
+                } catch (Exception e){
                     e.printStackTrace();
                 }
-                GeoLocation [] res = new GeoLocation [arr.length()];
-
-
-                for (int i = 0;i < arr.length(); i ++){
-                    res[i] = new GeoLocation();
-                    try {
-                        JSONObject obj = arr.getJSONObject(i);
-                        res[i].address = obj.getString("address");
-                        res[i].lng = obj.getJSONObject("location").getDouble("x");
-                        res[i].lat = obj.getJSONObject("location").getDouble("y") ;
-                        res[i].score = obj.getDouble("score");
-                    }catch (Exception e){
-
-                    }
-
-                }
-
-                if(callback != null)
-                    callback.onQueryAddressFinished(res);
-
             }
+
+            if(callback != null) {
+                callback.onQueryAddressFinished(res);
+            }
+
         }).start();
     }
 
+    /**
+     * 通过关键字查询地理位置信息
+     * @param address
+     * @param callback
+     */
+    public void getLocationOfAddress(final String address, final GeoServiceCallback callback) {
+        getLocationOfAddress(address, -1, callback);
+    }
 
-    public static String getStringFromURL(String urlString) throws IOException, JSONException {
+    /**
+     * 通过关键字查询地理位置信息
+     * @param address
+     * @param count
+     * @param callback
+     */
+    public void getLocationOfAddress(final String address,final int count, final GeoServiceCallback callback){
+        new Thread(() -> {
+            String result = "[]";
+            try {
+                String url = String.format("%s%s?address=%s&fromIndex=0&toIndex=10&maxReturn=%s", Common.getHost(), Common.GEO_CODE_URL(), address, count);
+                if (logEnable) {
+                    Log.e(TAG+"getLocationOfAddress", url);
+                }
+                result = getStringFromURL(url);
+                if (logEnable) {
+                    Log.e(TAG+"getLocationOfAddress", result);
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
+            JSONArray arr = new JSONArray();
+            try {
+                arr = new JSONArray(result);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            GeoLocation [] res = new GeoLocation [arr.length()];
+            for (int i = 0;i < arr.length(); i ++){
+                res[i] = new GeoLocation();
+                try {
+                    JSONObject obj = arr.getJSONObject(i);
+                    res[i].address = obj.getString("address");
+                    res[i].lng = obj.getJSONObject("location").getDouble("x");
+                    res[i].lat = obj.getJSONObject("location").getDouble("y") ;
+                    res[i].score = obj.getDouble("score");
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+            if(callback != null)
+                callback.onQueryAddressFinished(res);
+
+        }).start();
+    }
+
+    /**
+     * 获取数据结果
+     * @param url
+     * @return
+     * @throws IOException
+     */
+    private static String getStringFromURL(String url) throws IOException {
         HttpClient httpclient = new DefaultHttpClient();
-
-        HttpGet httpget= new HttpGet(urlString);
-
+        HttpGet httpget= new HttpGet(url);
         HttpResponse response = httpclient.execute(httpget);
-
-        if(response.getStatusLine().getStatusCode()==200){
-            String server_response = EntityUtils.toString(response.getEntity());
-            Log.i("Server response", server_response );
-            return server_response;
+        if(response.getStatusLine().getStatusCode() == 200){
+            return EntityUtils.toString(response.getEntity());
         } else {
-            Log.i("Server response", "Failed to get server response" );
             return "[]";
         }
     }
@@ -1563,85 +1565,6 @@ public class GisView extends RelativeLayout
         openedMaps.clear();
     }
 
-    public void setRoomStyle(String buildingId, String floorId, String key, String type, RoomStyle roomStyle) {
-        boolean isUpdated = false;
-
-        String indoorKey = String.format(indoorKeyTemplate, buildingId);
-        String styleKey = String.format(indoorStyleKeyTemplate, buildingId, floorId, type);
-        List<Overlay> ovls = null;
-        if (namedOverlays.containsKey(styleKey)) {
-            ovls = namedOverlays.get(styleKey);
-            List<Overlay> old = new ArrayList<>();
-            for (Overlay ov : ovls) {
-                if (ov.getKey().startsWith(key)) {
-                    mapView.getOverlays().remove(ov);
-                    old.add(ov);
-                    isUpdated = true;
-                }
-            }
-            for (Overlay ov : old)
-                ovls.remove(ov);
-        }
-
-        if (roomStyle != null && openIndoors.containsKey(indoorKey)) {
-            IndoorMapData indoorMapData = openIndoors.get(indoorKey);
-            for (ModelData modelData : indoorMapData.rooms) {
-                String smId = null;
-                String keyvalue = null;
-                if (modelData.features.containsKey("SMID"))
-                    smId = modelData.features.get("SMID");
-                if (modelData.features.containsKey(type))
-                    keyvalue = modelData.features.get(type);
-                if (keyvalue != null && keyvalue.equalsIgnoreCase(key)) {
-                    if (ovls == null) {
-                        ovls = new ArrayList<>();
-                        namedOverlays.put(styleKey, ovls);
-                    }
-                    if (modelData.geometry != null) {
-                        Paint paint = new Paint();
-                        paint.setAntiAlias(true);
-                        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-                        paint.setColor(roomStyle.fillColor);
-                        paint.setAlpha(roomStyle.fillOpacity);
-
-                        for (List<Point2D> points : modelData.geometry) {
-                            PolygonOverlay ov = new PolygonOverlay(paint);
-                            ov.setShowPoints(false);
-                            ov.setData(points);
-                            ov.setKey(keyvalue + smId);
-                            ovls.add(ov);
-                            mapView.getOverlays().add(ov);
-                        }
-                    } else {
-                        Paint paint = new Paint();
-                        paint.setAntiAlias(true);
-                        paint.setStyle(Paint.Style.STROKE);
-                        paint.setColor(roomStyle.lineColor);
-                        paint.setAlpha(roomStyle.lineOpacity);
-                        paint.setStrokeWidth(roomStyle.lineWidth);
-
-                        for (List<Point2D> points : modelData.outline) {
-                            LineOverlay ov = new LineOverlay(paint);
-                            ov.setShowPoints(false);
-                            ov.setData(points);
-                            ov.setKey(keyvalue + smId);
-                            ovls.add(ov);
-                            mapView.getOverlays().add(ov);
-                        }
-                    }
-                    isUpdated = true;
-                }
-            }
-        }
-
-        if (isUpdated)
-            mapView.invalidate();
-    }
-
-    public void setRoomStyle(String buildingId, String floorId, String roomId, RoomStyle roomStyle) {
-        setRoomStyle(buildingId, floorId, roomId, "ROOMID", roomStyle);
-    }
-
     public void switchOutdoor() {
         showIndoorMap("", null);
     }
@@ -2149,6 +2072,10 @@ public class GisView extends RelativeLayout
         mapView.invalidate();
     }
 
+    /**
+     * 渲染室内地图
+     * @param indoor
+     */
     private void renderIndoorMap(IndoorMapData indoor) {
         String indoorKey = String.format(indoorKeyTemplate, indoor.buildingId);
         List<Overlay> ovls = null;
@@ -2266,6 +2193,7 @@ public class GisView extends RelativeLayout
             if (needNewOverlay) {
                 DrawableOverlay floorOverlay = new DrawableOverlay();
                 floorOverlay.setDrawable(new BitmapDrawable(getResources(), baseBmp), new BoundingBox(leftTop, rightBottom));
+                floorOverlay.setZIndex(-1);
                 ovls.add(floorOverlay);
                 mapView.getOverlays().add(floorOverlay);
             } else {
@@ -2284,6 +2212,93 @@ public class GisView extends RelativeLayout
             indoorCallback.done();
             indoorCallback = null;
         }
+    }
+
+    public void setRoomStyle(String buildingId, String floorId, String roomId, String type, RoomStyle roomStyle) {
+        boolean isUpdated = false;
+
+        String indoorKey = String.format(indoorKeyTemplate, buildingId);
+        String styleKey = String.format(indoorStyleKeyTemplate, buildingId, floorId, type);
+        List<Overlay> ovls = null;
+        if (namedOverlays.containsKey(styleKey)) {
+            ovls = namedOverlays.get(styleKey);
+            List<Overlay> old = new ArrayList<>();
+            for (Overlay ov : ovls) {
+                if (ov.getKey().startsWith(roomId)) {
+                    mapView.getOverlays().remove(ov);
+                    old.add(ov);
+                    isUpdated = true;
+                }
+            }
+            for (Overlay ov : old)
+                ovls.remove(ov);
+        }
+
+        if (roomStyle != null && openIndoors.containsKey(indoorKey)) {
+            IndoorMapData indoorMapData = openIndoors.get(indoorKey);
+            for (ModelData modelData : indoorMapData.rooms) {
+                String smId = null;
+                String keyvalue = null;
+                if (modelData.features.containsKey("SMID"))
+                    smId = modelData.features.get("SMID");
+                if (modelData.features.containsKey(type))
+                    keyvalue = modelData.features.get(type);
+                if (keyvalue != null && keyvalue.equalsIgnoreCase(roomId)) {
+                    if (ovls == null) {
+                        ovls = new ArrayList<>();
+                        namedOverlays.put(styleKey, ovls);
+                    }
+                    if (modelData.geometry != null) {
+                        Paint paint = new Paint();
+                        paint.setAntiAlias(true);
+                        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+                        paint.setColor(roomStyle.fillColor);
+                        paint.setAlpha(roomStyle.fillOpacity);
+
+                        for (List<Point2D> points : modelData.geometry) {
+                            PolygonOverlay ov = new PolygonOverlay(paint);
+                            ov.setShowPoints(false);
+                            ov.setData(points);
+                            ov.setKey(keyvalue + smId);
+                            ov.setZIndex(-1);
+                            ovls.add(ov);
+                            mapView.getOverlays().add(ov);
+                        }
+                    } else {
+                        Paint paint = new Paint();
+                        paint.setAntiAlias(true);
+                        paint.setStyle(Paint.Style.STROKE);
+                        paint.setColor(roomStyle.lineColor);
+                        paint.setAlpha(roomStyle.lineOpacity);
+                        paint.setStrokeWidth(roomStyle.lineWidth);
+
+                        for (List<Point2D> points : modelData.outline) {
+                            LineOverlay ov = new LineOverlay(paint);
+                            ov.setShowPoints(false);
+                            ov.setData(points);
+                            ov.setKey(keyvalue + smId);
+                            ovls.add(ov);
+                            mapView.getOverlays().add(ov);
+                        }
+                    }
+                    isUpdated = true;
+                }
+            }
+        }
+
+        if (isUpdated)
+            mapView.invalidate();
+    }
+
+    /**
+     * 渲染室内房间样式
+     * @param buildingId
+     * @param floorId
+     * @param roomId
+     * @param roomStyle
+     */
+    public void setRoomStyle(String buildingId, String floorId, String roomId, RoomStyle roomStyle) {
+        setRoomStyle(buildingId, floorId, roomId, "ROOMID", roomStyle);
     }
 
     private void renderBasementMap(QueryUtils.BasementMapResult basement) {
@@ -2401,6 +2416,10 @@ public class GisView extends RelativeLayout
         }
     }
 
+    /**
+     * 渲染路线
+     * @param route
+     */
     private void renderCalculatdRoute(NetWorkAnalystUtil.CalculatedRoute route) {
         List<Overlay> ovls;
         if (namedOverlays.containsKey(calculatdRouteKey)) {

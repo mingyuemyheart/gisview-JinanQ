@@ -119,7 +119,6 @@ import java.util.concurrent.Executors;
             queryParameter.attributeFilter = "BuildingId = \"" + buildingId + "\"";
             sqlParameters.queryParameter = queryParameter;
 
-            Log.e("QueryIndoorMapRunnable", Common.getHost() + Common.DATA_URL());
             GetFeaturesBySQLService sqlService = new GetFeaturesBySQLService(Common.getHost() + Common.DATA_URL());
             MyGetFeaturesEventListener listener = new MyGetFeaturesEventListener();
             sqlService.process(sqlParameters, listener);
@@ -178,7 +177,7 @@ import java.util.concurrent.Executors;
                 rooms = new ArrayList<>();
                 for (Feature feature : floor.features) {
                     for (int i = 0; i < feature.fieldValues.length; i++) {
-                        Log.e("QueryIndoorMapRunnable", feature.fieldValues[i]);
+                        Log.e("QueryIndoorMapRunnable", feature.fieldNames[i]+"---"+feature.fieldValues[i]);
                     }
                     Geometry geometry = feature.geometry;
                     List<List<Point2D>> roomPoints = new ArrayList<>();
