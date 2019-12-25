@@ -227,6 +227,10 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
                     gisView.addMarker("lm01", 999, markers)
                 }
             }
+            R.id.zoom1 -> gisView.setZoom(doubleArrayOf(36.65221619825378, 117.16909751245657), 1)
+            R.id.zoom7 -> gisView.setZoom(doubleArrayOf(36.65221619825378, 117.16909751245657), 7)
+            R.id.zoomIn -> gisView.zoomInMap()
+            R.id.zoomOut -> gisView.zoomOutMap()
         }
 
         drawer_layout.closeDrawer(GravityCompat.START)

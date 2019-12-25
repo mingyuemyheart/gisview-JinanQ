@@ -1081,6 +1081,7 @@ public class GisView extends RelativeLayout implements Overlay.OverlayTapListene
 
     private void loadOffLineMaps(String name, int zoom, double[] center) {
         mapLayer = new LayerView(getContext());
+        Log.e("loadOffLineMaps", Common.getHost() + Common.MAP_URL());
         mapLayer.setURL(Common.getHost() + Common.MAP_URL());
 //        mapLayer.setExtParams(Common.extParam());
 //        darkLayer = new MBTilesLayerView(getContext(), name);

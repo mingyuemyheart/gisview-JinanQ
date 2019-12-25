@@ -93,7 +93,6 @@ import java.util.concurrent.Executors;
     }
 
     public static void queryIndoorMap(String mapId, String buildingId, String florid, Handler handler) {
-        Log.e("queryIndoorMap", mapId+","+buildingId+","+florid);
         executorService.execute(new QueryIndoorMapRunnable(mapId, buildingId, florid, handler));
     }
 

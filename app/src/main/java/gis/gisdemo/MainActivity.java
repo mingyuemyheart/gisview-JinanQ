@@ -276,9 +276,9 @@ public class MainActivity extends AppCompatActivity
             roomStyle.lineWidth = 2;
             roomStyle.fillColor = Color.parseColor("#009090");
             roomStyle.fillOpacity = 255;
-            gisView.setRoomStyle("A04", "F2", "HY09", roomStyle);
-            gisView.setRoomStyle("A04", "F2", "HY10", roomStyle);
-            gisView.setRoomStyle("A04", "F2", "HY11", roomStyle);
+            gisView.setRoomStyle("A04", "F1", "HYT1", roomStyle);
+            gisView.setRoomStyle("A04", "F1", "CT04", roomStyle);
+            gisView.setRoomStyle("A04", "F1", "CT08", roomStyle);
         } else if (id == R.id.delroomstyle) {
             gisView.setRoomStyle("A04", "F2", "8187", null);
         } else if (id == R.id.typestyle) {
