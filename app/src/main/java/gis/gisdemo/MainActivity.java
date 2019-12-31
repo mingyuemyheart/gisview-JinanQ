@@ -716,20 +716,34 @@ public class MainActivity extends AppCompatActivity
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * 点击房间回调
+     * @param me
+     */
     @Override
     public void modelEvent(ModelEvent me) {
+//        key=BUILDINGID,value=A04
+//        key=FLOORID,value=F1
+//        key=SMSDRIW,value=117.16988
+//        key=SMSDRIS,value=36.65272
+//        key=NAME,value=宴会厅
+//        key=SMSDRIN,value=36.652954
+//        key=ROOMCODE,value=CN_EC_37_001_QYQ_000_A04_F1_CT08
+//        key=SMID,value=380
+//        key=SMAREA,value=1431.3438288586906
+//        key=SMGEOPOSITION,value=2441460
+//        key=FLOORLIST,value=F1,F2
+//        key=SMPERIMETER,value=193.45509965035922
+//        key=SMGEOMETRYSIZE,value=956
+//        key=TYPE,value=餐厅
+//        key=ROOMID,value=CT08
+//        key=SMSDRIE,value=117.17059
+//        key=SMUSERID,value=0
+        String buildingId = me.buildingId+"或"+me.getStrParam("BUILDINGID");
+        String floorId = me.floorId+"或"+me.getStrParam("FLOORID");
+        String NAME = me.getStrParam("NAME");
         String msg = String.format("%s, 建筑：%s, 楼层：%s, 房间：%s, 名称：%s", me.eventType.toString(), me.buildingId, me.floorId, me.modelId, me.getStrParam("NAME"));
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        Object o = gisView.addPopup(
-                new double []{me.getNumParam("SMSDRIN"), me.getNumParam("SMSDRIW")},
-                msg,
-                new double[] {0,0},
-                300,
-                100,
-                "hello marker"
-
-        );
-        popups.add(o);
     }
 
     @Override

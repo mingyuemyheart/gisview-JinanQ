@@ -754,22 +754,19 @@ public class GisView extends RelativeLayout implements Overlay.OverlayTapListene
                     Map.Entry<String, IndoorMapData> entry = (Map.Entry<String, IndoorMapData>) iter.next();
                     IndoorMapData indoorMapData = entry.getValue();
                     for (ModelData modelData : indoorMapData.rooms) {
-                        boolean isHit = false;
                         if (modelData.geometry != null) {
                             for (List<Point2D> geoPoints : modelData.geometry) {
-                                isHit = isInPolygon(point2D, geoPoints.toArray(new Point2D[0]));
-                                if (isHit)
+                                boolean isHit = isInPolygon(point2D, geoPoints.toArray(new Point2D[0]));
+                                if (isHit) {
+                                    ModelEvent me = new ModelEvent(
+                                            TargetEvent.Press,
+                                            new double[]{point2D.x, point2D.y},
+                                            modelData.features);
+                                    for (ModelListener listener : mModelListener)
+                                        listener.modelEvent(me);
                                     break;
+                                }
                             }
-                        }
-                        if (isHit) {
-                            ModelEvent me = new ModelEvent(
-                                    TargetEvent.Press,
-                                    new double[]{point2D.x, point2D.y},
-                                    modelData.features);
-                            for (ModelListener listener : mModelListener)
-                                listener.modelEvent(me);
-                            break;
                         }
                     }
                 }
