@@ -210,23 +210,6 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
                         String.format("marker%d", cnt++), ani, 500, 10000, 64, 64, null))
                 gisView.addFlashMarker("lm02", 999, markers)
             }
-            R.id.menuGPS -> {
-                val loc = gisView.getMyLocation(this)  //获取我的定位
-                if (loc == null) {
-                    Toast.makeText(this, "定位失败", Toast.LENGTH_SHORT).show()
-                } else {
-                    val lat = loc.lat + 14.40128786492045
-                    val lng = loc.lng + 3.65470084578991
-                    val str = String.format("位置: lng:%f, lat:%f, heading: %f, addr:%s", lng, lat, loc.direction, loc.address)
-                    Toast.makeText(this, str, Toast.LENGTH_SHORT).show()
-                    val markers = arrayOf(GeneralMarker(
-                            doubleArrayOf(lat, lng),
-                            "位置",
-                            resources.getDrawable(R.drawable.marker_1, null),
-                            64, 64, null))
-                    gisView.addMarker("lm01", 999, markers)
-                }
-            }
             R.id.zoom1 -> gisView.setZoom(doubleArrayOf(36.65221619825378, 117.16909751245657), 1)
             R.id.zoom7 -> gisView.setZoom(doubleArrayOf(36.65221619825378, 117.16909751245657), 7)
             R.id.zoomIn -> gisView.zoomInMap()

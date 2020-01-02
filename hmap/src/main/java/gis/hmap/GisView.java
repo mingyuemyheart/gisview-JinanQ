@@ -264,7 +264,7 @@ public class GisView extends RelativeLayout implements Overlay.OverlayTapListene
         }
     }
 
-    public GeoLocation getMyLocation(Context context) {
+    public static GeoLocation getMyLocation(Context context) {
         if (_instance != null)
             return _instance.getMyLocation();
 
