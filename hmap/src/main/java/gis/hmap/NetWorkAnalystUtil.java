@@ -15,9 +15,7 @@ import com.supermap.android.networkAnalyst.FindPathService;
 import com.supermap.android.networkAnalyst.TransportationAnalystParameter;
 import com.supermap.android.networkAnalyst.TransportationAnalystResultSetting;
 import com.supermap.services.components.commontypes.Path;
-import com.supermap.services.components.commontypes.Route;
 
-import java.sql.DataTruncation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -153,8 +151,11 @@ class NetWorkAnalystUtil {
                         range = s.building+":"+s.floor;
                 }
                 List<Point2D> pts = new ArrayList<>();
-                for (WayPoint pt : waysec)
-                    pts.add(pt.point);
+                for (WayPoint pt : waysec) {
+                    if (pt != null && pt.point != null) {
+                        pts.add(pt.point);
+                    }
+                }
                 params.nodes = pts.toArray();
 
                 try {
