@@ -2253,8 +2253,27 @@ public class GisView extends RelativeLayout implements Overlay.OverlayTapListene
                         paint.setColor(roomStyle.fillColor);
                         paint.setAlpha(roomStyle.fillOpacity);
 
+                        double minX = 180, minY = 90;
+                        double maxX = -180 ,maxY = -90;
                         for (List<Point2D> points : modelData.geometry) {
-                            PolygonOverlay ov = new PolygonOverlay(paint);
+                            for (Point2D point : points) {
+                                if (minX >= point.x) {
+                                    minX = point.x;
+                                }
+                                if (minY >= point.y) {
+                                    minY = point.y;
+                                }
+                                if (maxX <= point.x) {
+                                    maxX = point.x;
+                                }
+                                if (maxY <= point.y) {
+                                    maxY = point.y;
+                                }
+                            }
+
+                            Point2D point2D = new Point2D((minX+maxX)/2, (minY+maxY)/2);
+                            String roomName = roomStyle.isShowText ? modelData.features.get("NAME") : "";
+                            TextPolygonOverlay ov = new TextPolygonOverlay(new double[] {point2D.y, point2D.x}, roomName, roomStyle.textColor);
                             ov.setShowPoints(false);
                             ov.setData(points);
                             ov.setKey(keyvalue + smId);
@@ -2275,6 +2294,7 @@ public class GisView extends RelativeLayout implements Overlay.OverlayTapListene
                             ov.setShowPoints(false);
                             ov.setData(points);
                             ov.setKey(keyvalue + smId);
+                            ov.setZIndex(-1);
                             ovls.add(ov);
                             mapView.getOverlays().add(ov);
                         }
