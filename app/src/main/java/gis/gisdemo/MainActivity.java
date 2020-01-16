@@ -260,15 +260,15 @@ public class MainActivity extends AppCompatActivity
             gisView.destroyMap();
             //加载楼层
         } else if (id == R.id.loadA03B1) {
-            gisView.showIndoorMap("A04","B1", this);
+            gisView.showIndoorMap("A02","B1", this);
         } else if (id == R.id.loadF1) {
-            gisView.showIndoorMap("A04","F1", this);
+            gisView.showIndoorMap("A02","F1", this);
         } else if (id == R.id.loadF2) {
-            gisView.showIndoorMap("A04","F2", this);
+            gisView.showIndoorMap("A02","F2", this);
         } else if (id == R.id.loadF3) {
-            gisView.showIndoorMap("A04","F3", this);
+            gisView.showIndoorMap("A02","F3", this);
         } else if (id == R.id.loadF4) {
-            gisView.showIndoorMap("A04","F4", this);
+            gisView.showIndoorMap("A02","F4", this);
         } else if (id == R.id.roomstyle) {
             RoomStyle roomStyle = new RoomStyle();
             roomStyle.lineColor = Color.parseColor("#909000");
@@ -287,14 +287,24 @@ public class MainActivity extends AppCompatActivity
             gisView.setRoomStyle("A04", "F1", "ER01", null);
         } else if (id == R.id.typestyle) {
             RoomStyle roomStyle = new RoomStyle();
-            roomStyle.lineColor = Color.parseColor("#ff0000");
+            roomStyle.lineColor = Color.parseColor("#909000");
             roomStyle.lineOpacity = 150;
             roomStyle.lineWidth = 2;
-            roomStyle.fillColor = Color.parseColor("#ff9090");
-            roomStyle.fillOpacity = 128;
-            gisView.setRoomStyle("A03", "F1", "洗衣机", "TYPE", roomStyle);
+            roomStyle.fillColor = Color.parseColor("#009090");
+            roomStyle.fillOpacity = 255;
+            roomStyle.textColor = Color.WHITE;
+            roomStyle.isShowText = true;
+            gisView.setRoomStyle("A02", "F2", "洗衣房", "TYPE", roomStyle);
+
+            roomStyle = new RoomStyle();
+            roomStyle.lineColor = Color.RED;
+            roomStyle.lineOpacity = 150;
+            roomStyle.lineWidth = 2;
+            roomStyle.fillColor = Color.RED;
+            roomStyle.fillOpacity = 255;
+            gisView.setRoomStyle("A02", "F2", "XJ01", roomStyle);
         }  else if (id == R.id.deltypestyle) {
-            gisView.setRoomStyle("A03", "F1", "洗衣机", "TYPE", null);
+            gisView.setRoomStyle("A02", "F2", "XJ01", null);
         } else if (id == R.id.loadB1) {
             gisView.showIndoorMap("","B01");
         } else if (id == R.id.loadOutdoor) {
@@ -457,20 +467,20 @@ public class MainActivity extends AppCompatActivity
 //                    },
 //                    ps);
 
-            //相同楼栋、相同楼层，没问题
-            gisView.calcRoutePath(
-                    new RoutePoint(new double[] { 36.653060, 117.170118 },
-                            Color.parseColor("#F20216"),
-                            "A04", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_1), 64, 64),
-                    new RoutePoint(new double[] { 36.652852, 117.170655 },
-                            Color.parseColor("#F20216"),
-                            "A04", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64,64),
-                    new RoutePoint[] {
-//                            new RoutePoint(new double[] { 36.65418334779979, 117.1704206617127 },
-//                                    Color.parseColor("#F20216"),
-//                                    "", "", 20, 100, getResources().getDrawable(R.drawable.marker_2), 64, 64)
-                    },
-                    ps);
+//            //相同楼栋、相同楼层，没问题
+//            gisView.calcRoutePath(
+//                    new RoutePoint(new double[] { 36.653060, 117.170118 },
+//                            Color.parseColor("#F20216"),
+//                            "A04", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_1), 64, 64),
+//                    new RoutePoint(new double[] { 36.652852, 117.170655 },
+//                            Color.parseColor("#F20216"),
+//                            "A04", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64,64),
+//                    new RoutePoint[] {
+////                            new RoutePoint(new double[] { 36.65418334779979, 117.1704206617127 },
+////                                    Color.parseColor("#F20216"),
+////                                    "", "", 20, 100, getResources().getDrawable(R.drawable.marker_2), 64, 64)
+//                    },
+//                    ps);
 
 //            //相同楼栋、不同楼层，没问题
 //            gisView.calcRoutePath(
@@ -501,6 +511,20 @@ public class MainActivity extends AppCompatActivity
 ////                                    "", "", 20, 100, getResources().getDrawable(R.drawable.marker_2), 64, 64)
 //                    },
 //                    ps);
+
+            gisView.calcRoutePath(
+                    new RoutePoint(new double[] { 36.65375569710928, 117.16983886643114 },
+                            Color.parseColor("#F20216"),
+                            "A02", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_1), 64, 64),
+                    new RoutePoint(new double[] { 36.653762, 117.168651 },
+                            Color.parseColor("#F20216"),
+                            "A03", "F1", 20, 100, getResources().getDrawable(R.drawable.marker_3), 64,64),
+                    new RoutePoint[] {
+//                            new RoutePoint(new double[] { 36.65418334779979, 117.1704206617127 },
+//                                    Color.parseColor("#F20216"),
+//                                    "", "", 20, 100, getResources().getDrawable(R.drawable.marker_2), 64, 64)
+                    },
+                    ps);
         } else if(id == R.id.caclRouteA03F2){
             PresentationStyle ps = new PresentationStyle();
             ps.opacity = 120;

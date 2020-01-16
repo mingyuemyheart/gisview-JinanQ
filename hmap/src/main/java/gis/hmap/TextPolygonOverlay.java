@@ -5,12 +5,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.text.TextPaint;
-import android.util.Log;
 
 import com.supermap.android.maps.MapView;
-import com.supermap.android.maps.Overlay;
 import com.supermap.android.maps.Point2D;
 import com.supermap.android.maps.PolygonOverlay;
 
@@ -21,7 +18,6 @@ class TextPolygonOverlay extends PolygonOverlay {
 
     private double[] position;//位置
     private String content;//内容
-
     private int textColor = Color.BLACK;
 
     private TextPaint textPaint;
@@ -38,11 +34,11 @@ class TextPolygonOverlay extends PolygonOverlay {
         this.textColor = textColor;
     }
 
-    public TextPolygonOverlay(double[] position, String content, int textColor) {
-        this.position = position;
-        this.content = content;
-        this.textColor = textColor;
+    public TextPolygonOverlay(Paint polygonPaint) {
+        super(polygonPaint);
+    }
 
+    public void start() {
         textPaint = new TextPaint();
         textPaint.setColor(textColor);
         textPaint.setStyle(Paint.Style.FILL_AND_STROKE);

@@ -2273,11 +2273,18 @@ public class GisView extends RelativeLayout implements Overlay.OverlayTapListene
 
                             Point2D point2D = new Point2D((minX+maxX)/2, (minY+maxY)/2);
                             String roomName = roomStyle.isShowText ? modelData.features.get("NAME") : "";
-                            TextPolygonOverlay ov = new TextPolygonOverlay(new double[] {point2D.y, point2D.x}, roomName, roomStyle.textColor);
+                            if (logEnable) {
+                                Log.e(TAG+"roomName", roomName);
+                            }
+                            TextPolygonOverlay ov = new TextPolygonOverlay(paint);
+                            ov.setPosition(new double[] {point2D.y, point2D.x});
+                            ov.setContent(roomName);
+                            ov.setTextColor(roomStyle.textColor);
                             ov.setShowPoints(false);
                             ov.setData(points);
                             ov.setKey(keyvalue + smId);
                             ov.setZIndex(-1);
+                            ov.start();
                             ovls.add(ov);
                             mapView.getOverlays().add(ov);
                         }
