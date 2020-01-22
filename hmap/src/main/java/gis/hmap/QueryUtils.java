@@ -132,7 +132,8 @@ import java.util.concurrent.Executors;
             GetFeaturesResult building = listener.getReult();
             if (building != null && building.features != null) {
                 buildingGeometry = new ArrayList<>();
-                for (Feature feature : building.features) {
+                for (int i = 0; i < building.features.length; i++) {
+                    Feature feature = building.features[i];
                     Geometry geometry = feature.geometry;
                     List<Point2D> geoPoints = getPiontsFromGeometry(geometry);
                     if (geometry.parts.length > 1) {
@@ -174,7 +175,8 @@ import java.util.concurrent.Executors;
             GetFeaturesResult floor = listener.getReult();
             if (floor != null && floor.features != null) {
                 rooms = new ArrayList<>();
-                for (Feature feature : floor.features) {
+                for (int m = 0; m < floor.features.length; m++) {
+                    Feature feature = floor.features[m];
                     for (int i = 0; i < feature.fieldValues.length; i++) {
                         Log.e("QueryIndoorMapRunnable", feature.fieldNames[i]+"---"+feature.fieldValues[i]);
                     }

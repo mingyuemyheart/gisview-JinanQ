@@ -278,6 +278,12 @@ public class MainActivity extends AppCompatActivity
             roomStyle.fillOpacity = 255;
             roomStyle.textColor = Color.WHITE;
             roomStyle.isShowText = true;
+            /**
+             * buildingId 楼栋号
+             * floorid 楼层号
+             * roomId 房间号
+             * roomStyle 色块样式代码
+             */
             gisView.setRoomStyle("A04", "F1", "CT08", roomStyle);
             gisView.setRoomStyle("A04", "F1", "CR01", roomStyle);
             gisView.setRoomStyle("A04", "F1", "ER01", roomStyle);
@@ -294,6 +300,12 @@ public class MainActivity extends AppCompatActivity
             roomStyle.fillOpacity = 255;
             roomStyle.textColor = Color.WHITE;
             roomStyle.isShowText = true;
+            /**
+             * buildingId 楼栋号
+             * floorid 楼层号
+             * roomId 如果为非房间号，则表示查询"TYPE"字段的字符串参数
+             * roomStyle 色块样式代码
+             */
             gisView.setRoomStyle("A02", "F2", "洗衣房", "TYPE", roomStyle);
 
             roomStyle = new RoomStyle();
@@ -302,7 +314,7 @@ public class MainActivity extends AppCompatActivity
             roomStyle.lineWidth = 2;
             roomStyle.fillColor = Color.RED;
             roomStyle.fillOpacity = 255;
-            gisView.setRoomStyle("A02", "F2", "XJ01", roomStyle);
+            gisView.setRoomStyle("A02", "F2", "洗衣机", "TYPE", roomStyle);
         }  else if (id == R.id.deltypestyle) {
             gisView.setRoomStyle("A02", "F2", "XJ01", null);
         } else if (id == R.id.loadB1) {
